@@ -1387,41 +1387,49 @@ $\textcolor{crukdark}{\bullet}$ Stop at the first non-rejection: the remaining h
 
 \vspace{\dimexpr-0.2em+1pt\relax}
 
-All five procedures \textbf{control} the FWER at $\alpha$, each under its own condition. They differ in \textbf{how much power} they gain over Bonferroni, and in \textbf{what they must assume} to do so.
+All six procedures \textbf{control} the FWER at $\alpha$, each under its own condition. They differ in \textbf{how much power} they gain over Bonferroni, and in \textbf{what they must assume} to do so.
 
 \vspace{-0.3em}
 
-```{r power-ladder, fig.width=7.8, fig.height=2.35, fig.align="center"}
+```{r power-ladder, fig.width=7.8, fig.height=2.9, fig.align="center"}
 crukdark  <- "#00007E"
 cruklight <- "#009CEE"
 crukpink  <- "#FF0087"
 
-labs <- c("Bonferroni", "Holm", "Šidák (single-step)", "Hochberg", "Hommel")
-x    <- c(1, 2, 2, 4, 5)
-y    <- c(1, 2.4, 1.05, 3.1, 4.1)
+labs <- c("Bonferroni", "Holm", "Šidák (single-step)", "Hochberg", "Hommel",
+          "Holm–Šidák (step-down)")
+x    <- c(1, 2, 1.6, 4, 5, 2.9)
+y    <- c(1, 2.2, 1.05, 3.4, 4.3, 2.5)
 ## three assumption tiers, from least to most demanding:
 ##   dark blue  = none           (Bonferroni, Holm)
-##   light blue = POD            (Sidak)   -- positive orthant dependence
+##   light blue = POD            (Sidak, Holm-Sidak)   -- positive orthant dependence
 ##   pink       = PRDS           (Hochberg, Hommel) -- PRDS implies POD, so it asks more
-cols <- c(crukdark, crukdark, cruklight, crukpink, crukpink)
+cols <- c(crukdark, crukdark, cruklight, crukpink, crukpink, cruklight)
 
 par(mar = c(0, 0, 0.2, 0))
 plot(NULL, xlim = c(0.35, 7.6), ylim = c(0.1, 4.9),
      axes = FALSE, xlab = "", ylab = "")
 
 arrows(0.55, 0.55, 5.55, 0.55, length = 0.12, lwd = 2, col = "grey55")
-text(3.05, 0.18, "increasing power", col = "grey35", cex = 0.95)
+text(3.05, 0.26, "increasing power", col = "grey35", cex = 0.95)
 
-segments(1, 1, 2, 2.4, col = "grey70", lwd = 1.6)
-segments(2, 2.4, 4, 3.1, col = "grey70", lwd = 1.6)
-segments(4, 3.1, 5, 4.1, col = "grey70", lwd = 1.6)
-## Sidak is a side branch: it beats Bonferroni, but is not comparable with the rest
-segments(1, 1, 2, 1.05, col = "grey70", lwd = 1.6, lty = 3)
+## every line joins a procedure to one that uniformly dominates it
+segments(1, 1, 2, 2.2, col = "grey70", lwd = 1.6)
+segments(2, 2.2, 4, 3.4, col = "grey70", lwd = 1.6)
+segments(4, 3.4, 5, 4.3, col = "grey70", lwd = 1.6)
+## Sidak is a side branch: it beats Bonferroni and is beaten by Holm-Sidak, but
+## is not comparable with Holm, Hochberg or Hommel
+segments(1, 1, 1.6, 1.05, col = "grey70", lwd = 1.6)
+## Holm-Sidak is the step-down version of Sidak: it uniformly dominates BOTH Holm
+## and Sidak (single-step), but is not comparable with Hochberg or Hommel
+segments(2, 2.2, 2.9, 2.5, col = "grey70", lwd = 1.6)
+segments(1.6, 1.05, 2.9, 2.5, col = "grey70", lwd = 1.6)
 
-## the Sidak label is long, so it sits to the right of its point instead of above
-lab_dx  <- c(0, 0, 0.24, 0, 0)
-lab_dy  <- c(0.42, 0.42, 0, 0.42, 0.42)
-lab_adj <- c(0.5, 0.5, 0, 0.5, 0.5)
+## the Sidak and Holm-Sidak labels are long, so they sit to the right of their
+## points instead of above; Bonferroni's shifts left to clear its line to Holm
+lab_dx  <- c(-0.2, 0, 0.24, 0, 0, 0.24)
+lab_dy  <- c(0.34, 0.34, 0, 0.34, 0.34, 0)
+lab_adj <- c(0.5, 0.5, 0, 0.5, 0.5, 0)
 for (i in seq_along(labs)) {
   points(x[i], y[i], pch = 21, bg = cols[i], col = cols[i], cex = 2.2)
   text(x[i] + lab_dx[i], y[i] + lab_dy[i], labs[i], cex = 1.02, font = 2,
@@ -1429,13 +1437,15 @@ for (i in seq_along(labs)) {
 }
 
 ## assumption legend, ordered from least to most demanding
-text(6.15, 4.30, "SUFFICIENT CONDITION", col = "grey35", cex = 0.66, font = 2, adj = c(0, 0.5))
-text(6.15, 3.72, "none", col = crukdark, cex = 0.72, font = 2, adj = c(0, 0.5))
-text(6.15, 3.06, "POD", col = cruklight, cex = 0.72, font = 2, adj = c(0, 0.5))
-text(6.15, 2.40, "PRDS", col = crukpink, cex = 0.72, font = 2, adj = c(0, 0.5))
-points(6.02, 3.72, pch = 21, bg = crukdark,  col = crukdark,  cex = 1.1)
-points(6.02, 3.06, pch = 21, bg = cruklight, col = cruklight, cex = 1.1)
-points(6.02, 2.40, pch = 21, bg = crukpink,  col = crukpink,  cex = 1.1)
+text(6.15, 4.54, "SUFFICIENT CONDITION", col = "grey35", cex = 0.66, font = 2, adj = c(0, 0.5))
+text(6.15, 4.16, "FOR FWER CONTROL", col = "grey35", cex = 0.66, font = 2, adj = c(0, 0.5))
+## the three entries sit directly under the heading, left-aligned with it
+text(6.33, 3.70, "none", col = crukdark, cex = 0.72, font = 2, adj = c(0, 0.5))
+text(6.33, 3.28, "POD", col = cruklight, cex = 0.72, font = 2, adj = c(0, 0.5))
+text(6.33, 2.86, "PRDS", col = crukpink, cex = 0.72, font = 2, adj = c(0, 0.5))
+points(6.17, 3.70, pch = 21, bg = crukdark,  col = crukdark,  cex = 1.1)
+points(6.17, 3.28, pch = 21, bg = cruklight, col = cruklight, cex = 1.1)
+points(6.17, 2.86, pch = 21, bg = crukpink,  col = crukpink,  cex = 1.1)
 ```
 
 \vspace{-0.2em}
@@ -1444,9 +1454,192 @@ points(6.02, 2.40, pch = 21, bg = crukpink,  col = crukpink,  cex = 1.1)
 
 \settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textcolor{cruklight}{\textbf{Šidák (single-step)}} is \textbf{not uniformly more or less powerful} than \textbf{Holm}, \textbf{Hochberg} and \textbf{Hommel}: each can reject a hypothesis the other does not\par
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textcolor{cruklight}{\textbf{Šidák}}, \textcolor{crukpink}{\textbf{Hochberg}} and \textcolor{crukpink}{\textbf{Hommel}} all \textbf{control the FWER} when the test statistics are \textbf{independent}\par
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textcolor{cruklight}{\textbf{Šidák}}, \textcolor{cruklight}{\textbf{Holm–Šidák}}, \textcolor{crukpink}{\textbf{Hochberg}} and \textcolor{crukpink}{\textbf{Hommel}} all \textbf{control the FWER} when the test statistics are \textbf{independent}\par
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{POD} and \textbf{PRDS} are both \textbf{positive dependence} conditions (PRDS is the stronger one): one test being significant \textbf{never makes the others less likely} to be significant\par
+\normalsize
+
+## POD condition {.t}
+
+\textbf{\textcolor{crukdark}{\Large POD $=$ Positive Orthant Dependence}}
+
+\vspace{-0.4em}
+
+```{r pod-only, fig.width=7.8, fig.height=2.6, fig.align="center"}
+crukdark  <- "#00007E"
+cruklight <- "#009CEE"
+crukpink  <- "#FF0087"
+
+cc <- 0.30            # an illustrative threshold c, big enough to be visible
+set.seed(11)
+n  <- 170
+
+## a tick and a cross, drawn by hand so that they match the deck's other marks
+mk_tick <- function(x, y, s, col) {
+  lines(c(x - s, x - 0.2 * s, x + s), c(y + 0.15 * s, y - 0.8 * s, y + s),
+        col = col, lwd = 2.4, lend = 1, xpd = NA)
+}
+mk_cross <- function(x, y, s, col) {
+  lines(c(x - s, x + s), c(y - s, y + s), col = col, lwd = 2.4, lend = 1, xpd = NA)
+  lines(c(x - s, x + s), c(y + s, y - s), col = col, lwd = 2.4, lend = 1, xpd = NA)
+}
+
+## a short label on a white patch, so it stays readable over the points
+boxed_text <- function(x, y, lab, cex) {
+  w <- strwidth(lab, cex = cex) / 2 + 0.015
+  h <- strheight(lab, cex = cex) / 2 + 0.015
+  rect(x - w, y - h, x + w, y + h, col = "white", border = NA)
+  text(x, y, lab, cex = cex, font = 2, col = "grey30")
+}
+
+## top row: the joint picture of two true-null p-values, with the two corners
+## POD talks about (both significant, both non-significant) shaded
+pod_panel <- function(rho, corner = NULL) {
+  z1 <- rnorm(n)
+  z2 <- rho * z1 + sqrt(1 - rho^2) * rnorm(n)
+  plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xaxs = "i", yaxs = "i",
+       axes = FALSE, xlab = "", ylab = "")
+  rect(0, 0, cc, cc, col = "#D9EFFC", border = NA)
+  rect(cc, cc, 1, 1, col = "#D9EFFC", border = NA)
+  segments(cc, 0, cc, 1, col = "grey60", lty = 2)
+  segments(0, cc, 1, cc, col = "grey60", lty = 2)
+  points(pnorm(z1), pnorm(z2), pch = 16, cex = 0.7,
+         col = adjustcolor(crukdark, 0.8))
+  box(col = "grey45")
+  ## the two orthant probabilities, as percentages, on a white patch
+  z  <- matrix(rnorm(2e5), ncol = 2)
+  zz <- cbind(z[, 1], rho * z[, 1] + sqrt(1 - rho^2) * z[, 2])
+  q  <- qnorm(cc)
+  pr <- c(mean(zz[, 1] < q & zz[, 2] < q), mean(zz[, 1] > q & zz[, 2] > q))
+  for (k in 1:2) {
+    px <- c(cc / 2, (1 + cc) / 2)[k]
+    py <- c(cc / 2, (1 + cc) / 2)[k]
+    lab <- sprintf("%.0f%%", 100 * pr[k])
+    cx <- 0.9
+    if (!is.null(corner)) {
+      ## stack the corner's name over its percentage, the pair centred in the box
+      h1 <- strheight(corner[k], cex = 0.72) + 0.03
+      h2 <- strheight(lab, cex = cx) + 0.04
+      boxed_text(px, py + (h1 + h2) / 2 - h1 / 2, corner[k], 0.72)
+      py <- py - (h1 + h2) / 2 + h2 / 2
+    }
+    rect(px - strwidth(lab, cex = cx) / 2 - 0.02,
+         py - strheight(lab, cex = cx) / 2 - 0.02,
+         px + strwidth(lab, cex = cx) / 2 + 0.02,
+         py + strheight(lab, cex = cx) / 2 + 0.02,
+         col = "white", border = NA)
+    text(px, py, lab, cex = cx, font = 2, col = crukdark)
+  }
+}
+
+## bottom row: the conditional picture PRDS talks about -- how likely the OTHER
+## p-value is to be large, given that this true null's p-value equals u
+prds_panel <- function(rho, col) {
+  u <- seq(0.002, 0.998, length.out = 400)
+  g <- if (rho == 0) rep(1 - cc, length(u)) else
+    1 - pnorm((qnorm(cc) - rho * qnorm(u)) / sqrt(1 - rho^2))
+  plot(NULL, xlim = c(0, 1), ylim = c(0, 1), xaxs = "i", yaxs = "i",
+       axes = FALSE, xlab = "", ylab = "")
+  abline(h = 1 - cc, col = "grey75", lty = 3)
+  lines(u, g, lwd = 2.8, col = col)
+  box(col = "grey45")
+}
+
+
+rhos <- c(0, 0.85, -0.85)
+hdr  <- c("independent", "move together", "opposite sides")
+hcol <- c("grey35", cruklight, crukpink)
+
+draw_pod_row <- function(mar = c(1.35, 0.2, 1.75, 0.2)) {
+  set.seed(11)
+  par(mar = mar)
+  plot.new()
+  text(0.3, 0.5, "POD", srt = 90, font = 2, cex = 1.55, col = cruklight)
+  for (i in 1:3) {
+    par(mar = mar)
+    ## the first panel also names the two shaded corners
+    pod_panel(rhos[i], corner = if (i == 1) c("both sig.", "both non-sig."))
+    if (i == 1) {
+      ## and shows where the threshold c is
+      text(cc, -0.105, expression(italic(c)), cex = 1.15, xpd = NA)
+      text(-0.085, cc, expression(italic(c)), cex = 1.15, xpd = NA)
+    }
+    mtext(hdr[i], side = 3, line = 0.30, cex = 1.12, font = 2, col = hcol[i])
+    if (i == 3) mk_cross(0.075, 1.115, 0.05, crukpink) else
+      mk_tick(0.075, 1.115, 0.055, hcol[i])
+    text(0.5, -0.105, expression(italic(p)[1]), cex = 1.15, xpd = NA)
+    if (i == 1)
+      text(-0.085, 0.5, expression(italic(p)[2]), srt = 90, cex = 1.15, xpd = NA)
+  }
+  par(mar = c(0, 0, 0, 0)); plot.new()
+}
+
+draw_prds_row <- function() {
+  par(mar = c(1.95, 0.2, 0.85, 0.2))
+  plot.new()
+  text(0.3, 0.5, "PRDS", srt = 90, font = 2, cex = 1.55, col = crukpink)
+  pcol <- c("grey45", cruklight, crukpink)
+  for (i in 1:3) {
+    par(mar = c(1.95, 0.2, 0.85, 0.2))
+    prds_panel(rhos[i], pcol[i])
+    ## say in one word what the curve does: this IS the PRDS condition.
+    ## dead centre of the box, so the three verdicts line up across the row
+    text(0.5, 0.5,
+         c("flat", "increasing", "decreasing")[i], cex = 1.05, font = 2,
+         col = pcol[i])
+    if (i == 1)
+      text(0.035, 0.95,
+           expression("P(other " * italic(p) * " > " * italic(c) * "  |  " *
+                      italic(p)[1] * " = " * italic(u) * ")"),
+           adj = c(0, 1), cex = 1.0, col = "grey35")
+    text(0.5, -0.115, expression(italic(u)), cex = 1.15, xpd = NA)
+  }
+  par(mar = c(0, 0, 0, 0)); plot.new()
+}
+
+## only the POD row on this slide
+layout(matrix(1:5, nrow = 1), widths = c(0.3, 1, 1, 1, 0.06))
+## a taller panel pushes the outside labels further out, so give them more room
+draw_pod_row(c(2.3, 0.2, 2.8, 0.2))
+```
+
+\vspace{-0.9em}
+
+\begingroup
+\fontsize{8.6}{10.2}\selectfont
+\setlength{\parskip}{3pt}
+
+\centerline{$c$ $=$ the \textbf{significance level} each $p$-value is compared with (e.g.\ 0.05)}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \textbf{POD}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textcolor{cruklight}{\textbf{POD}}: for \textbf{any} threshold $c$ (e.g.\ 0.05), the \colorbox{red}{\color{black}TRUE} null $p$-values are \textbf{at least as likely} to be \textbf{all significant} (i.e.\ \textbf{at the same time}), \textbf{and} at least as likely to be \textbf{all non-significant} (i.e.\ \textbf{at the same time}), \textbf{as if they were independent}: $P(\text{all } p_i \le c) \ge \prod_i P(p_i \le c)$ and $P(\text{all } p_i > c) \ge \prod_i P(p_i > c)$. \textcolor{cruklight}{\textbf{Šidák}} needs \textbf{only} the second one (positive upper orthant dependence, PUOD): $\text{FWER} = 1 - P(\text{all } p_i > c) \le 1 - (1-c)^{m_0} \le \alpha$ \textbf{(all together, not one given another)}\par
+
+\endgroup
+
+## PRDS condition {.t}
+
+\textbf{\textcolor{crukdark}{\Large PRDS $=$ Positive Regression Dependence on a Subset}}
+
+\vspace{-0.4em}
+
+```{r prds-both, fig.width=7.8, fig.height=2.85, fig.align="center"}
+## both rows here, so the conditional picture can be read against the joint one
+layout(matrix(1:10, nrow = 2, byrow = TRUE), widths = c(0.3, 1, 1, 1, 0.06))
+draw_pod_row()
+draw_prds_row()
+```
+
+\vspace{-1.1em}
+
+\begingroup
+\fontsize{8.6}{10.2}\selectfont
+\setlength{\parskip}{3pt}
+
+\centerline{$u$ $=$ a \textbf{possible value taken} by the $p$-value of a \colorbox{red}{\color{black}TRUE} null $H_i$, $u \in [0, 1]$}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \textbf{PRDS}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textcolor{crukpink}{\textbf{PRDS}}: \textcolor{cruklight}{\textbf{POD}} compares \textbf{one unconditional joint probability} with the \textbf{independent} case, while \textcolor{crukpink}{\textbf{PRDS}} requires that, \underline{\textbf{for each} \colorbox{red}{\color{black}TRUE} \textbf{null}} $H_i$, $i \in K_0$, the probability that the \textbf{other} $p$-values fall \textbf{outside the critical region} be \textbf{non-decreasing in} $u$, \textbf{at every} $u$. \textbf{Sufficient} for \textcolor{crukpink}{\textbf{Hochberg}} and \textcolor{crukpink}{\textbf{Hommel}}, and for \textbf{BH} to control the \textbf{FDR}\par
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{PRDS implies POD}, but \textbf{not} the converse\par
+
+\endgroup
 
 \normalsize
 
@@ -1706,6 +1899,111 @@ $H_2$ is \textbf{not rejected}: $|t_2| = 2.10 < q_\alpha = 2.23$, adjusted $\til
 
 \begingroup\centering\small\textbf{Under the subset pivotality condition, the FWER is controlled ($\mathrm{FWER} \leq \alpha$)}\par\endgroup
 
+## \fontsize{14.5}{17}\selectfont How to apply the max-$t$ principle for multiple comparisons {.t}
+
+\vspace{-2pt}
+
+```{r maxt-recipe, fig.width=6.9, fig.height=3.55, fig.align="center", out.width="100%"}
+crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
+
+par(mar = c(0, 0, 0, 0))
+plot(NULL, xlim = c(0, 100), ylim = c(0, 100), axes = FALSE, xlab = "", ylab = "",
+     xaxs = "i", yaxs = "i")
+
+ycen <- c(87, 63, 39, 14)            # the four rows
+titles <- c("Statistical model", "Hypotheses",
+            "Test statistics and their joint law",
+            "How the joint law is used")
+subs <- list(
+  "what the data look like, and what is assumed",
+  "one per comparison, all tested together",
+  expression("each " * italic(t)[i] * ", and " * italic(D) * " = their joint law under " * H[0]^global),
+  expression(bold("jointly") * "  or  " * bold("marginally") * " (as if uncorrelated)"))
+
+## ---- left column: the numbered steps -------------------------------------
+for (i in 1:4) {
+  yc <- ycen[i]
+  points(4.2, yc + 2.6, pch = 16, cex = 2.9, col = crukdark)
+  text(4.2, yc + 2.6, i, col = "white", cex = 0.95, font = 2)
+  text(10, yc + 2.6, titles[i], col = crukdark, cex = 1.15, font = 2, adj = c(0, 0.5))
+  text(10, yc - 4.8, subs[[i]], col = "grey30", cex = 0.95, adj = c(0, 0.5))
+}
+
+## ---- right column: one small picture per step ----------------------------
+bx <- 60; bw <- 38                   # drawing band
+
+## 1. three groups, drawn as densities on a baseline
+y1 <- ycen[1]
+segments(bx, y1 - 7, bx + bw, y1 - 7, col = "grey45", lwd = 1)
+for (k in 0:2) {
+  mu <- bx + 7 + k * 11
+  xx <- seq(mu - 5, mu + 5, length.out = 60)
+  yy <- (y1 - 7) + 13 * dnorm(xx, mu, 2.1) / dnorm(0, 0, 2.1)
+  polygon(c(xx, rev(xx)), c(yy, rep(y1 - 7, length(xx))),
+          col = adjustcolor(cruklight, 0.18), border = NA)
+  lines(xx, yy, col = if (k == 0) crukpink else cruklight, lwd = 1.8)
+}
+text(bx + bw/2, y1 - 11, "groups", col = "grey35", cex = 0.72)
+
+## 2. one hypothesis per comparison
+y2 <- ycen[2]
+for (k in 0:2) {
+  xx <- bx + 1 + k * 13
+  rect(xx, y2 - 3.6, xx + 11, y2 + 4.4, border = crukdark, lwd = 1.2, col = "white")
+  text(xx + 5.5, y2 + 0.4,
+       c(expression(H[1]), expression(H[2]), expression(H[n]))[[k + 1]],
+       col = crukdark, cex = 0.82)
+}
+text(bx + 19.5, y2 - 7.5, "tested as one family", col = "grey35", cex = 0.72)
+
+## 3. the statistics, and D as their joint cloud
+y3 <- ycen[3]
+set.seed(4)
+for (k in 0:2) {
+  xx <- bx + 2 + k * 6
+  text(xx, y3 + 4.5, c(expression(t[1]), expression(t[2]), expression(t[n]))[[k + 1]],
+       col = crukdark, cex = 0.82)
+}
+arrows(bx + 16, y3 + 4.5, bx + 21, y3 + 4.5, length = 0.05, lwd = 1.2, col = crukdark)
+## a tilted cloud = D
+cx <- bx + 30; cy <- y3 + 1
+th <- seq(0, 2 * pi, length.out = 120)
+for (rr in c(1, 1.9)) {
+  ex <- rr * 5.2 * cos(th); ey <- rr * 2.6 * sin(th)
+  a  <- pi / 4
+  lines(cx + ex * cos(a) - ey * sin(a), cy + ex * sin(a) + ey * cos(a),
+        col = cruklight, lwd = 1.5)
+}
+text(cx, y3 - 8.5, expression(italic(D)), col = crukdark, cex = 1.0, font = 2)
+
+## 4. joint versus marginal, side by side
+y4 <- ycen[4]
+## -- joint: the cloud with one max-t cut
+jx <- bx + 7
+for (rr in c(1, 1.8)) {
+  ex <- rr * 4.2 * cos(th); ey <- rr * 2.1 * sin(th)
+  a  <- pi / 4
+  lines(jx + ex * cos(a) - ey * sin(a), y4 + ex * sin(a) + ey * cos(a),
+        col = cruklight, lwd = 1.3)
+}
+rect(jx - 8.2, y4 - 8.2, jx + 8.2, y4 + 8.2, border = crukpink, lwd = 1.5, lty = 1)
+text(jx, y4 - 11.5, "jointly", col = crukpink, cex = 0.78, font = 2)
+## -- marginal: two separate axes, each cut on its own
+mx <- bx + 29
+for (k in 0:1) {
+  yy <- y4 + 4.5 - k * 9
+  segments(mx - 9, yy, mx + 9, yy, col = "grey45", lwd = 1)
+  xx <- seq(mx - 9, mx + 9, length.out = 60)
+  lines(xx, yy + 6 * dnorm(xx, mx, 3.4) / dnorm(0, 0, 3.4), col = cruklight, lwd = 1.3)
+  segments(mx + c(-5.6, 5.6), yy, mx + c(-5.6, 5.6), yy + 5, col = crukpink, lwd = 1.4)
+}
+text(mx, y4 - 11.5, "marginally", col = crukpink, cex = 0.78, font = 2)
+```
+
+\vspace{-0.7em}
+
+\begingroup\centering\footnotesize\textbf{\textcolor{crukdark}{Jointly}}: critical value(s) from $\mathcal{D}$, correlations used. \textbf{\textcolor{crukdark}{Marginally}}: each one alone, as if uncorrelated\par\endgroup
+
 ## Dunnett's test {.t}
 
 \vspace{-1pt}
@@ -1714,7 +2012,7 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 
 \vspace{-1.2em}
 
-```{r dunnett-anova, fig.width=6.8, fig.height=1.85, fig.align="center", out.width="92%"}
+```{r dunnett-anova, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
 sig <- 0.55
@@ -1724,9 +2022,9 @@ labs <- list(expression("Control " * mu[0]), expression("Arm 1 " * mu[1]),
 cols <- c(crukpink, cruklight, cruklight, cruklight)
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, dnorm(0, 0, sig) * 1.08),
+plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, dnorm(0, 0, sig) * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus) + 3.2 * sig, 0, col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
   xs <- seq(mus[k] - 3.2 * sig, mus[k] + 3.2 * sig, length.out = 300)
   polygon(c(xs, rev(xs)), c(dnorm(xs, mus[k], sig), rep(0, length(xs))),
@@ -1738,24 +2036,39 @@ for (k in seq_along(mus)) {
 text(5.9, 0.12, expression(cdots), cex = 1.4, col = crukdark)
 
 ## the two assumptions, in boxes on the right
-## equal-width boxes, stacked down from the top of the plot region
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2          # right-aligned to the plot region
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+## equal-height boxes, in one row across the top of the plot region
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
-box_stack(list(
+box_row(list(
   expression(bold("Normality: ") * Y[ki] %~% N(mu[k], sigma^2)),
   expression(bold("Equal variances: ") * "same " * sigma^2),
-  expression(bold("Independence: ") * Y[ki] * " mutually independent")))
+  expression(bold("Independence: ") * Y[ki] * " independent")))
 ```
 
 \vspace{-1.3em}
@@ -1764,10 +2077,7 @@ box_stack(list(
 
 \vspace{0.25em}
 
-
-\vspace{0.25em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_k$ follows a Student's $t$ distribution with $N - (n+1)$ degrees of freedom under $H_k$\newline
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_k$ follows a Student's $t$ distribution with $N - (n+1)$ degrees of freedom under $H_k$ \mbox{\footnotesize($N$ = total sample size)}\newline
 \colorbox{cruklight}{\color{white}$\mathcal{D}$} is a multivariate Student's $t$ distribution under $H_0^{\mathrm{global}}$
 
 \vspace{-1pt}
@@ -1782,7 +2092,7 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 
 \vspace{-1.2em}
 
-```{r tukey-anova, fig.width=6.8, fig.height=1.72, fig.align="center", out.width="92%"}
+```{r tukey-anova, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
 sig <- 0.55
@@ -1792,9 +2102,9 @@ labs <- list(expression("Group 1 " * mu[1]), expression("Group 2 " * mu[2]),
 cols <- c(cruklight, cruklight, cruklight, cruklight)
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, dnorm(0, 0, sig) * 1.08),
+plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, dnorm(0, 0, sig) * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 10.1, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus) + 3.2 * sig, 0, col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
   xs <- seq(mus[k] - 3.2 * sig, mus[k] + 3.2 * sig, length.out = 300)
   polygon(c(xs, rev(xs)), c(dnorm(xs, mus[k], sig), rep(0, length(xs))),
@@ -1806,32 +2116,44 @@ for (k in seq_along(mus)) {
 text(6.8, 0.12, expression(cdots), cex = 1.4, col = crukdark)
 
 ## the two assumptions, in boxes on the right
-## equal-width boxes, stacked down from the top of the plot region
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2          # right-aligned to the plot region
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+## equal-height boxes, in one row across the top of the plot region
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
-box_stack(list(
+box_row(list(
   expression(bold("Normality: ") * Y[ji] %~% N(mu[j], sigma^2)),
   expression(bold("Equal variances: ") * "same " * sigma^2),
-  expression(bold("Independence: ") * Y[ji] * " mutually independent")))
+  expression(bold("Independence: ") * Y[ji] * " independent")))
 ```
 
 \vspace{-1.3em}
 
 \settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Hypotheses}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Hypotheses}: $H_{j\ell} : \mu_j = \mu_\ell$, $1 \leq j < \ell \leq k$\vspace{1.5pt}\newline {\fontsize{10.5pt}{12.5pt}\selectfont For each of the $n = k(k-1)/2$ pairs, the two group means are equal\par}
-
-\vspace{0.25em}
-
 
 \vspace{0.25em}
 
@@ -1851,7 +2173,7 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 
 \vspace{-1.2em}
 
-```{r dunnett-unequalvar, fig.width=6.8, fig.height=1.85, fig.align="center", out.width="92%"}
+```{r dunnett-unequalvar, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
 sigs <- c(0.40, 0.78, 0.50, 0.92)
@@ -1861,9 +2183,9 @@ labs <- list(expression("Control " * mu[0]), expression("Arm 1 " * mu[1]),
 cols <- c(crukpink, cruklight, cruklight, cruklight)
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, dnorm(0, 0, min(sigs)) * 1.08),
+plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, dnorm(0, 0, min(sigs)) * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus + 3.2 * sigs), 0, col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
   xs <- seq(mus[k] - 3.2 * sigs[k], mus[k] + 3.2 * sigs[k], length.out = 300)
   polygon(c(xs, rev(xs)), c(dnorm(xs, mus[k], sigs[k]), rep(0, length(xs))),
@@ -1874,24 +2196,39 @@ for (k in seq_along(mus)) {
 }
 text(5.9, dnorm(0, 0, min(sigs)) * 0.25, expression(cdots), cex = 1.4, col = crukdark)
 
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
 
-box_stack(list(
+box_row(list(
   expression(bold("Normality: ") * Y[ki] %~% N(mu[k], sigma[k]^2)),
-  expression(bold("Unequal variances: ") * sigma[k]^2 * " may differ"),
-  expression(bold("Independence: ") * Y[ki] * " mutually independent")))
+  expression(bold("Equal variances: ") * "same " * sigma^2),
+  expression(bold("Independence: ") * Y[ki] * " independent")), off = 2)
 ```
 
 \vspace{-1.3em}
@@ -1901,15 +2238,15 @@ box_stack(list(
 \vspace{0.25em}
 
 \settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_k$ (Welch) follows \textbf{approximately} a Student's $t$ distribution under $H_k$\newline
-\colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{approximately} a multivariate Student's $t$ distribution under $H_0^{\mathrm{global}}$
+\colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{approximately} a multivariate Student's $t$ under $H_0^{\mathrm{global}}$ \mbox{\footnotesize(Satterthwaite df, \textbf{estimated} correlations; needs \textbf{moderate} $n_k$)}
 
 \vspace{-1pt}
 
 \noindent\hspace*{14.5pt}\tikz[baseline=-0.55ex, overlay]{\draw[-{Latex[length=5pt,width=4pt]}, thick, crukdark] (0,9.5pt) -- (0,0) -- (16pt,0);}\hspace{20pt}\textbf{\textcolor{crukdark}{The max-$t$ principle is applied to $\mathcal{D}$}}\par
 
-\vspace{\dimexpr0.3em+6.6pt\relax}
+\vfill
 
-\begingroup\small\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{\textbf{\textcolor{crukdark}{Tamhane's T2}} and \textbf{\textcolor{crukdark}{Dunnett's T3}} treat $\mathcal{D}$ \textbf{marginally} (each statistic on its own, not jointly)}}}\par\endgroup
+\begingroup\footnotesize\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{The \textbf{\textcolor{crukdark}{Šidák version}} treats $\mathcal{D}$ \textbf{marginally}: each statistic on its own}}}\par\endgroup
 
 ## \fontsize{15.5}{18}\selectfont Tukey's test with unequal variances (Hasler--Hothorn) {.t}
 
@@ -1919,19 +2256,19 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 
 \vspace{-1.2em}
 
-```{r tukey-unequalvar, fig.width=6.8, fig.height=1.72, fig.align="center", out.width="92%"}
+```{r tukey-unequalvar, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
 sigs <- c(0.40, 0.78, 0.50, 0.92)
-mus  <- c(0, 2.6, 4.4, 7.4)
+mus  <- c(0, 2.8, 5.3, 8.3)
 labs <- list(expression("Group 1 " * mu[1]), expression("Group 2 " * mu[2]),
              expression("Group 3 " * mu[3]), expression("Group " * italic(k) * " " * mu[italic(k)]))
 cols <- c(cruklight, cruklight, cruklight, cruklight)
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, dnorm(0, 0, min(sigs)) * 1.08),
+plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, dnorm(0, 0, min(sigs)) * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus + 3.2 * sigs), 0, col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
   xs <- seq(mus[k] - 3.2 * sigs[k], mus[k] + 3.2 * sigs[k], length.out = 300)
   polygon(c(xs, rev(xs)), c(dnorm(xs, mus[k], sigs[k]), rep(0, length(xs))),
@@ -1940,26 +2277,41 @@ for (k in seq_along(mus)) {
   segments(mus[k], 0, mus[k], dnorm(mus[k], mus[k], sigs[k]), col = cols[k], lty = 2, lwd = 1)
   mtext(labs[[k]], side = 1, line = 0.25, at = mus[k], cex = 0.78, col = cols[k])
 }
-text(5.9, dnorm(0, 0, min(sigs)) * 0.25, expression(cdots), cex = 1.4, col = crukdark)
+text(6.8, dnorm(0, 0, min(sigs)) * 0.25, expression(cdots), cex = 1.4, col = crukdark)
 
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
 
-box_stack(list(
+box_row(list(
   expression(bold("Normality: ") * Y[ji] %~% N(mu[j], sigma[j]^2)),
-  expression(bold("Unequal variances: ") * sigma[j]^2 * " may differ"),
-  expression(bold("Independence: ") * Y[ji] * " mutually independent")))
+  expression(bold("Equal variances: ") * "same " * sigma^2),
+  expression(bold("Independence: ") * Y[ji] * " independent")), off = 2)
 ```
 
 \vspace{-1.3em}
@@ -1969,17 +2321,17 @@ box_stack(list(
 \vspace{0.25em}
 
 \settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_{j\ell}$ (Welch) follows \textbf{approximately} a Student's $t$ distribution under $H_{j\ell}$\newline
-\colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{approximately} a multivariate Student's $t$ distribution under $H_0^{\mathrm{global}}$
+\colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{approximately} a multivariate Student's $t$ under $H_0^{\mathrm{global}}$ \mbox{\footnotesize(Satterthwaite df, \textbf{estimated} correlations; needs \textbf{moderate} $n_k$)}
 
 \vspace{-1pt}
 
 \noindent\hspace*{14.5pt}\tikz[baseline=-0.55ex, overlay]{\draw[-{Latex[length=5pt,width=4pt]}, thick, crukdark] (0,9.5pt) -- (0,0) -- (16pt,0);}\hspace{20pt}\textbf{\textcolor{crukdark}{The max-$t$ principle is applied to $\mathcal{D}$}}\par
 
-\vspace{0.3em}
+\vfill
 
-\begingroup\small\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{\textbf{\textcolor{crukdark}{T2}}, \textbf{\textcolor{crukdark}{T3}} and \textbf{\textcolor{crukdark}{Games--Howell}} treat $\mathcal{D}$ \textbf{marginally} (each statistic on its own)}}}\par\endgroup
+\begingroup\footnotesize\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{\textbf{\textcolor{crukdark}{T2}} and \textbf{\textcolor{crukdark}{T3}} use $\mathcal{D}$ \textbf{marginally}; \textbf{\textcolor{crukdark}{Games--Howell}} jointly: \textbf{Welch} statistics, \textbf{Tukey's} critical value}}}\par\endgroup
 
-## Dunnett-type test without normality (Steel) {.t}
+## \fontsize{15.5}{18}\selectfont Dunnett-type test without normality (Steel) {.t}
 
 \vspace{-1pt}
 
@@ -1990,46 +2342,65 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 ```{r steel-nonormal, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
-## skewed, non-normal shapes: the same distribution shifted in location
-sh <- 2.6; sc <- 0.55
-mus  <- c(0, 2.6, 4.4, 7.4)
+## one skewed, non-normal shape shifted in location: under each pair's null the
+## two compared groups share one distribution, as the middle box says
+sh <- rep(2.6, 4); sc <- rep(0.55, 4)
+mus  <- c(0, 2.6, 5.0, 7.8)
 labs <- list(expression("Control " * F[0]), expression("Arm 1 " * F[1]),
              expression("Arm 2 " * F[2]), expression("Arm " * italic(n) * " " * F[italic(n)]))
 cols <- c(crukpink, cruklight, cruklight, cruklight)
-ytop <- dgamma((sh - 1) * sc, shape = sh, scale = sc)
+ytop <- max(dgamma((sh - 1) * sc, shape = sh, scale = sc))
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, ytop * 1.08),
+plot(NULL, xlim = c(-1.6, 14.6), ylim = c(0, ytop * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus + qgamma(0.995, shape = sh, scale = sc)), 0,
+         col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
-  xs <- seq(mus[k], mus[k] + 4.4, length.out = 300)
-  ds <- dgamma(xs - mus[k], shape = sh, scale = sc)
+  xs <- seq(mus[k], mus[k] + qgamma(0.995, shape = sh[k], scale = sc[k]), length.out = 300)
+  ds <- dgamma(xs - mus[k], shape = sh[k], scale = sc[k])
   polygon(c(xs, rev(xs)), c(ds, rep(0, length(xs))),
           col = adjustcolor(cols[k], 0.18), border = NA)
   lines(xs, ds, col = cols[k], lwd = 2)
-  mtext(labs[[k]], side = 1, line = 0.25, at = mus[k] + (sh - 1) * sc,
+  mtext(labs[[k]], side = 1, line = 0.25, at = mus[k] + (sh[k] - 1) * sc[k],
         cex = 0.78, col = cols[k])
 }
-text(6.4, ytop * 0.25, expression(cdots), cex = 1.4, col = crukdark)
+## the gammas overlap, so the ellipsis goes in the flattest gap, clear of every curve
+text(7.92, ytop * 0.30, expression(cdots), cex = 1.4, col = crukdark)
 
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
 
-box_stack(list(
-  expression(bold("No normality: ") * F[k] * " any continuous distribution"),
-  expression(bold("Independence: ") * Y[ki] * " mutually independent")))
+box_row(list(
+  expression(bold("Normality: ") * Y[ki] %~% N(mu[k], sigma^2)),
+  expression(bold("Same distribution: ") * "within each pair"),
+  expression(bold("Independence: ") * Y[ki] * " independent")), off = 1)
 ```
 
 \vspace{-1.3em}
@@ -2038,16 +2409,16 @@ box_stack(list(
 
 \vspace{0.25em}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_k$ (standardised Wilcoxon rank sum) is \textbf{asymptotically} standard normal under $H_k$\newline
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_k$ (standardised Wilcoxon rank sum, \textbf{ranked within the control--arm pair only}) is \textbf{asymptotically} standard normal under $H_k$ \mbox{\footnotesize(no ties)}\newline
 \colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{asymptotically} a multivariate normal distribution under $H_0^{\mathrm{global}}$
 
 \vspace{-1pt}
 
 \noindent\hspace*{14.5pt}\tikz[baseline=-0.55ex, overlay]{\draw[-{Latex[length=5pt,width=4pt]}, thick, crukdark] (0,9.5pt) -- (0,0) -- (16pt,0);}\hspace{20pt}\textbf{\textcolor{crukdark}{The max-$t$ principle is applied to $\mathcal{D}$}}\par
 
-\vspace{\dimexpr0.3em+0pt\relax}
+\vfill
 
-\begingroup\small\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{\textbf{\textcolor{crukdark}{Šidák}} treats $\mathcal{D}$ \textbf{marginally} (each statistic on its own, not jointly)}}}\par\endgroup
+\begingroup\footnotesize\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{The \textbf{\textcolor{crukdark}{Šidák version}} treats $\mathcal{D}$ \textbf{marginally}: each statistic on its own}}}\par\endgroup
 
 ## \fontsize{15.5}{18}\selectfont Tukey-type test without normality (Steel--Dwass) {.t}
 
@@ -2057,49 +2428,68 @@ $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical mo
 
 \vspace{-1.2em}
 
-```{r steeldwass-nonormal, fig.width=6.8, fig.height=1.50, fig.align="center", out.width="92%"}
+```{r steeldwass-nonormal, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
-## skewed, non-normal shapes: the same distribution shifted in location
-sh <- 2.6; sc <- 0.55
-mus  <- c(0, 2.6, 4.4, 7.4)
+## one skewed, non-normal shape shifted in location: under each pair's null the
+## two compared groups share one distribution, as the middle box says
+sh <- rep(2.6, 4); sc <- rep(0.55, 4)
+mus  <- c(0, 2.8, 5.3, 8.3)
 labs <- list(expression("Group 1 " * F[1]), expression("Group 2 " * F[2]),
              expression("Group 3 " * F[3]), expression("Group " * italic(k) * " " * F[italic(k)]))
 cols <- c(cruklight, cruklight, cruklight, cruklight)
-ytop <- dgamma((sh - 1) * sc, shape = sh, scale = sc)
+ytop <- max(dgamma((sh - 1) * sc, shape = sh, scale = sc))
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, ytop * 1.08),
+plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, ytop * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus + qgamma(0.995, shape = sh, scale = sc)), 0,
+         col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
-  xs <- seq(mus[k], mus[k] + 4.4, length.out = 300)
-  ds <- dgamma(xs - mus[k], shape = sh, scale = sc)
+  xs <- seq(mus[k], mus[k] + qgamma(0.995, shape = sh[k], scale = sc[k]), length.out = 300)
+  ds <- dgamma(xs - mus[k], shape = sh[k], scale = sc[k])
   polygon(c(xs, rev(xs)), c(ds, rep(0, length(xs))),
           col = adjustcolor(cols[k], 0.18), border = NA)
   lines(xs, ds, col = cols[k], lwd = 2)
-  mtext(labs[[k]], side = 1, line = 0.25, at = mus[k] + (sh - 1) * sc,
+  mtext(labs[[k]], side = 1, line = 0.25, at = mus[k] + (sh[k] - 1) * sc[k],
         cex = 0.78, col = cols[k])
 }
-text(6.4, ytop * 0.25, expression(cdots), cex = 1.4, col = crukdark)
+## the gammas overlap, so the ellipsis goes in the flattest gap, clear of every curve
+text(8.40, ytop * 0.30, expression(cdots), cex = 1.4, col = crukdark)
 
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
 
-box_stack(list(
-  expression(bold("No normality: ") * F[j] * " any continuous distribution"),
-  expression(bold("Independence: ") * Y[ji] * " mutually independent")))
+box_row(list(
+  expression(bold("Normality: ") * Y[ji] %~% N(mu[j], sigma^2)),
+  expression(bold("Same distribution: ") * "within each pair"),
+  expression(bold("Independence: ") * Y[ji] * " independent")), off = 1)
 ```
 
 \vspace{-1.3em}
@@ -2108,69 +2498,151 @@ box_stack(list(
 
 \vspace{0.25em}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_{j\ell}$ (standardised Wilcoxon rank sum) is \textbf{asymptotically} standard normal under $H_{j\ell}$\newline
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Each $t_{j\ell}$ (standardised Wilcoxon rank sum, \textbf{ranked within each pair only}) is \textbf{asymptotically} standard normal under $H_{j\ell}$ \mbox{\footnotesize(no ties)}\newline
 \colorbox{cruklight}{\color{white}$\mathcal{D}$} is \textbf{asymptotically} a multivariate normal distribution under $H_0^{\mathrm{global}}$
 
 \vspace{-1pt}
 
 \noindent\hspace*{14.5pt}\tikz[baseline=-0.55ex, overlay]{\draw[-{Latex[length=5pt,width=4pt]}, thick, crukdark] (0,9.5pt) -- (0,0) -- (16pt,0);}\hspace{20pt}\textbf{\textcolor{crukdark}{The max-$t$ principle is applied to $\mathcal{D}$}}\par
 
-\vspace{\dimexpr0.3em+0pt\relax}
+\vfill
 
-\begingroup\small\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{\textbf{\textcolor{crukdark}{Šidák}} treats $\mathcal{D}$ \textbf{marginally} (each statistic on its own, not jointly)}}}\par\endgroup
+\begingroup\footnotesize\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{The \textbf{\textcolor{crukdark}{Šidák version}} treats $\mathcal{D}$ \textbf{marginally}: each statistic on its own}}}\par\endgroup
+
+## \fontsize{14.5}{17}\selectfont How to apply non-max-$t$ procedures for multiple comparisons {.t}
+
+\vspace{2pt}
+
+```{r nomaxt-recipe, fig.width=6.9, fig.height=3.45, fig.align="center", out.width="100%"}
+crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink  <- "#FF0087"
+
+par(mar = c(0, 0, 0, 0))
+plot(NULL, xlim = c(0, 100), ylim = c(0, 100), axes = FALSE, xlab = "", ylab = "",
+     xaxs = "i", yaxs = "i")
+
+ycen <- c(82, 50, 18)
+titles <- c("Joint distribution", "Test by hypothesis", "Correction")
+subs <- list(
+  expression("same start as max-" * italic(t) * ": " * italic(D) * ", but only its margins"),
+  expression("one test each, from its own margin of " * italic(D)),
+  expression("Bonferroni or Holm on the raw " * italic(p) * "-values"))
+
+for (i in 1:3) {
+  yc <- ycen[i]
+  points(4.2, yc + 3, pch = 16, cex = 2.9, col = crukdark)
+  text(4.2, yc + 3, i, col = "white", cex = 0.95, font = 2)
+  text(10, yc + 3, titles[i], col = crukdark, cex = 1.15, font = 2, adj = c(0, 0.5))
+  text(10, yc - 5, subs[[i]], col = "grey30", cex = 0.95, adj = c(0, 0.5))
+}
+
+bx <- 58
+th <- seq(0, 2 * pi, length.out = 120)
+ell <- function(cx, cy, rx, ry, col, lwd) {
+  a1 <- pi / 4
+  for (rr in c(1, 1.9)) {
+    ex <- rr * rx * cos(th); ey <- rr * ry * sin(th)
+    lines(cx + ex * cos(a1) - ey * sin(a1), cy + ex * sin(a1) + ey * cos(a1),
+          col = col, lwd = lwd)
+  }
+}
+
+## 1. the same joint law as on the max-t slide; only its margins are used
+y1 <- ycen[1]; cx <- bx + 18; cy <- y1 + 1
+ell(cx, cy, 5.6, 2.8, cruklight, 1.5)
+text(cx, y1 - 12, expression(italic(D)), col = crukdark, cex = 1.0, font = 2)
+
+## 2. one p-value per hypothesis, each from its own margin of D
+y2 <- ycen[2]
+hl <- list(expression(H[1]), expression(H[2]), expression(H[n]))
+pl <- list(expression(italic(p)[1]), expression(italic(p)[2]), expression(italic(p)[n]))
+for (k in 0:2) {
+  yy <- y2 + 8 - k * 8
+  rect(bx - 1, yy - 3, bx + 9, yy + 3, border = crukdark, lwd = 1.1, col = "white")
+  text(bx + 4, yy, hl[[k + 1]], col = crukdark, cex = 0.78)
+  arrows(bx + 10.5, yy, bx + 15.5, yy, length = 0.04, lwd = 1.1, col = "grey45")
+  text(bx + 18.5, yy, pl[[k + 1]], col = crukdark, cex = 0.78)
+}
+## 3. the raw p-values against one shared threshold
+y3 <- ycen[3]; px <- bx + 6
+for (k in 0:2) {
+  yy <- y3 + 8 - k * 8
+  text(px, yy, pl[[k + 1]], col = crukdark, cex = 0.78)
+  segments(px + 4, yy, px + 4 + c(17, 4, 13)[k + 1], yy, col = cruklight, lwd = 3.4)
+}
+segments(px + 10, y3 - 11, px + 10, y3 + 13, col = crukpink, lwd = 1.7, lty = 2)
+text(px + 10, y3 - 14, expression(alpha / italic(n)), col = crukpink, cex = 0.86)
+```
+
+\vspace{-0.4em}
+
+\begingroup\centering\footnotesize One test per hypothesis from its \textbf{margin} of $\mathcal{D}$, then multiplicity by \textbf{correcting the $p$-values}\par\endgroup
 
 ## Dunn's test (not a max-$t$ procedure) {.t}
 
 \vspace{-1pt}
 
-$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical model}: one-way layout \textbf{without} the normality assumption
+$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Statistical model}: one-way layout \textbf{without} normality, all $k$ groups \textbf{alike}
 
 \vspace{-1.2em}
 
-```{r dunn-nonormal, fig.width=6.8, fig.height=1.05, fig.align="center", out.width="80%"}
+```{r dunn-nonormal, fig.width=6.8, fig.height=1.60, fig.align="center", out.width="92%"}
 crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
 
-## skewed, non-normal shapes: the same distribution shifted in location
+## Dunn assumes every group has the SAME distribution, so the k curves coincide:
+## they are drawn with a hair of offset only so that several are visible
 sh <- 2.6; sc <- 0.55
-mus  <- c(0, 2.6, 4.4, 7.4)
-labs <- list(expression("Group 1 " * F[1]), expression("Group 2 " * F[2]),
-             expression("Group 3 " * F[3]), expression("Group " * italic(k) * " " * F[italic(k)]))
-cols <- c(cruklight, cruklight, cruklight, cruklight)
+mus  <- 5.4 + c(0, 0.05, 0.10, 0.15)
 ytop <- dgamma((sh - 1) * sc, shape = sh, scale = sc)
 
 par(mar = c(1.4, 0.3, 0.2, 0.3))
-plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, ytop * 1.08),
+plot(NULL, xlim = c(-1.6, 15.6), ylim = c(0, ytop * 1.42),
      axes = FALSE, xlab = "", ylab = "")
-segments(-1.6, 0, 9.2, 0, col = "grey40", lwd = 1)
+segments(-1.6, 0, max(mus) + 4.6, 0, col = "grey40", lwd = 1)
 for (k in seq_along(mus)) {
   xs <- seq(mus[k], mus[k] + 4.4, length.out = 300)
   ds <- dgamma(xs - mus[k], shape = sh, scale = sc)
-  polygon(c(xs, rev(xs)), c(ds, rep(0, length(xs))),
-          col = adjustcolor(cols[k], 0.18), border = NA)
-  lines(xs, ds, col = cols[k], lwd = 2)
-  mtext(labs[[k]], side = 1, line = 0.25, at = mus[k] + (sh - 1) * sc,
-        cex = 0.78, col = cols[k])
+  if (k == 1)
+    polygon(c(xs, rev(xs)), c(ds, rep(0, length(xs))),
+            col = adjustcolor(cruklight, 0.18), border = NA)
+  lines(xs, ds, col = cruklight, lwd = 2)
 }
-text(6.4, ytop * 0.25, expression(cdots), cex = 1.4, col = crukdark)
+mtext(expression(F[1] ~ "=" ~ F[2] ~ "=" ~ F[3] ~ "=" ~ F[italic(k)]), side = 1, line = 0.25,
+      at = mus[1] + (sh - 1) * sc + 0.2, cex = 0.82, col = cruklight)
 
-box_stack <- function(txts, cx = 0.95) {
-  bw  <- max(sapply(txts, strwidth, cex = cx)) * 1.12
-  bh  <- max(sapply(txts, strheight, cex = cx)) * 1.5
-  gap <- bh * 0.18
-  x   <- par("usr")[2] - bw/2
-  ys  <- par("usr")[4] - bh/2 - (seq_along(txts) - 1) * (bh + gap)
+
+box_row <- function(txts, cx = 0.78, off = integer(0)) {
+  ## one row of boxes across the top, identical on every slide.
+  ## `off` marks the assumptions this test does NOT need: those boxes are
+  ## greyed and struck through with a red cross.
+  repeat {
+    ws  <- sapply(txts, strwidth, cex = cx) * 1.06
+    gap <- strwidth("n", cex = cx) * 2.0
+    tot <- sum(ws) + gap * (length(txts) - 1)
+    if (tot <= diff(par("usr")[1:2]) * 0.995 || cx < 0.45) break
+    cx <- cx * 0.96
+  }
+  bh <- max(sapply(txts, strheight, cex = cx)) * 1.7
+  y  <- par("usr")[4] - bh / 2
+  x0 <- par("usr")[2] - tot
   par(xpd = NA)
   for (i in seq_along(txts)) {
-    rect(x - bw/2, ys[i] - bh/2, x + bw/2, ys[i] + bh/2,
-         border = crukdark, lwd = 1.3, col = "white")
-    text(x, ys[i], txts[[i]], cex = cx, col = crukdark, font = 2)
+    xl   <- x0 + sum(ws[seq_len(i - 1)]) + gap * (i - 1)
+    dead <- i %in% off
+    rect(xl, y - bh/2, xl + ws[i], y + bh/2,
+         border = if (dead) "grey60" else crukdark, lwd = 1.3, col = "white")
+    text(xl + ws[i]/2, y, txts[[i]], cex = cx,
+         col = if (dead) "grey55" else crukdark, font = 2)
+    if (dead) {
+      segments(xl, y - bh/2, xl + ws[i], y + bh/2, col = crukpink, lwd = 1.8)
+      segments(xl, y + bh/2, xl + ws[i], y - bh/2, col = crukpink, lwd = 1.8)
+    }
   }
 }
 
-box_stack(list(
-  expression(bold("No normality: ") * F[j] * " any continuous distribution"),
-  expression(bold("Same shape: ") * F[j] * " differ only in location"),
-  expression(bold("Independence: ") * Y[ji] * " mutually independent")))
+box_row(list(
+  expression(bold("Normality: ") * Y[ji] %~% N(mu[j], sigma^2)),
+  expression(bold("Same distribution: ") * "all " * italic(k) * " groups"),
+  expression(bold("Independence: ") * Y[ji] * " independent")), off = 1)
 ```
 
 \vspace{-1.3em}
@@ -2179,11 +2651,15 @@ box_stack(list(
 
 \vspace{0.25em}
 
-\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}$\textcolor{crukdark}{\bullet}$ \textbf{Test statistic} for each pair, from the \textbf{mean ranks} $\bar{R}_j$ over all $N$ observations:
-$$t_{j\ell} = \frac{\bar{R}_j - \bar{R}_\ell}{\sqrt{\frac{N(N+1)}{12}\left(1/m_j + 1/m_\ell\right)}}
-\qquad\text{asymptotically } N(0,1) \text{ under } H_{j\ell}$$
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{Test statistic} for each pair, from the \textbf{mean ranks} $\bar{R}_j$ over all $N$ observations, standardised under $H_0^{\mathrm{global}}$ \mbox{\footnotesize(no ties)}: a \textbf{$p$-value for each pair}\par
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{$p$-value} of each pair: $p_{j\ell} = 2\left(1 - \Phi(|t_{j\ell}|)\right)$; \textbf{Bonferroni} or \textbf{Holm} is then applied to these $n$ $p$-values. $\mathcal{D}$ is \textbf{ignored}\par
+\vspace{0.25em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{Bonferroni} or \textbf{Holm} is then applied to these $n$ $p$-values: only the \textbf{margins} of $\mathcal{D}$ are used\par
+
+\vfill
+
+\begingroup\footnotesize\noindent\setlength{\fboxsep}{3.5pt}\fcolorbox{crukpink}{white}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{\centerline{Dunn assumes \textbf{\textcolor{crukdark}{all $k$ groups have the same distribution}}; otherwise \textbf{\textcolor{crukdark}{FWER}} can \textbf{far exceed} $\alpha$}}}\par\endgroup
 
 
 ## Simulations and practicals
@@ -2455,45 +2931,108 @@ abline(0, 1, col = cruklight, lwd = 2, lty = 2)
 \vspace{-1.7em}
 
 \begingroup
-Simulated $p$-values under $H_0$ ($\mu_1 = \mu_2$) from a two-sample $t$-test with $5$ units per group ($10^6$ simulations): the histogram is flat at density $1$ and the empirical cumulative distribution function (CDF) tracks the diagonal $y = x$, confirming $p \sim \mathrm{Uniform}(0,1)$.\par
+Simulated $p$-values under $H_0$ ($\mu_1 = \mu_2$) from a two-sample (pooled) Student $t$-test with $5$ units per group ($10^6$ simulations): the histogram is flat at density $1$ and the empirical cumulative distribution function (CDF) tracks the diagonal $y = x$, confirming $p \sim \mathrm{Uniform}(0,1)$.\par
 \endgroup
 
 ## Controlling the FDR: Benjamini--Hochberg (BH) {.t}
 
 \vspace{-0.01em}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}The question}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}The question}: not \textit{``did I make \textbf{any} mistake?''} (FWER), but \textit{``what \textbf{share} of my list of discoveries is wrong?''}\par
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Let $p_{(1)} \le p_{(2)} \le \dots \le p_{(n)}$ be the ordered $p$-values: $(i)$ is the \textbf{rank}\par
 
-\vspace{0.3em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Count}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Count}: reject every $p_i \leq \gamma$. Each \colorbox{red}{\color{black}TRUE} null is Uniform$(0,1)$, so it falls below $\gamma$ with probability $\gamma$: under $H_0^{\mathrm{global}}$ we expect about $n\,\gamma$ \textbf{false} discoveries, against the $k$ discoveries we \textbf{observe} ($k$ = their number = the rank of the last rejected $p$-value)\par
-
-\vspace{0.3em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Rule}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Rule}: make that share equal to the FDR level $q$ we are willing to accept (plug-in for $\mathrm{FDR} = \mathbb{E}[V/R]$)
 \vspace{-0.2em}
-$$\frac{\text{expected false}}{\text{observed discoveries}} = \frac{n\,\gamma}{k} = q \qquad \Longrightarrow \qquad \textcolor{crukdark}{\boldsymbol{\gamma = \frac{k\,q}{n}}}$$
+
+```{r bh-gamma-line, fig.width=6.9, fig.height=1.35, fig.align="center", out.width="100%"}
+crukdark <- "#00007E"; cruklight <- "#009CEE"; crukpink <- "#FF0087"
+
+par(mar = c(0, 0, 0, 0))
+plot(NULL, xlim = c(0, 100), ylim = c(0, 40), axes = FALSE, xlab = "", ylab = "",
+     xaxs = "i", yaxs = "i")
+
+x0 <- 6; x1 <- 94; yl <- 16              # the p-value line, from 0 to 1
+g  <- 33                                 # the threshold gamma
+## the rejection region, left of gamma
+rect(x0, yl - 7, g, yl + 7, col = adjustcolor(crukpink, 0.10), border = NA)
+segments(x0, yl, x1, yl, lwd = 2, col = "grey30")
+segments(c(x0, x1), yl - 1.5, c(x0, x1), yl + 1.5, lwd = 2, col = "grey30")
+text(c(x0, x1), yl - 5, c("0", "1"), cex = 1.0, col = "grey30")
+
+## the ordered p-values, at irregular positions: p_(1), p_(2), ..., p_(k) below
+## gamma, then p_(k+1), p_(k+2), ..., p_(n)
+px  <- c(10, 16, 28, 40, 53, 89)
+lab <- c(expression(italic(p)[(1)]), expression(italic(p)[(2)]),
+         expression(italic(p)[(italic(k))]), expression(italic(p)[(italic(k) + 1)]),
+         expression(italic(p)[(italic(k) + 2)]), expression(italic(p)[(italic(n))]))
+rej <- px < g
+points(px, rep(yl, length(px)), pch = 19, cex = 1.3, col = ifelse(rej, crukpink, crukdark))
+text(22, yl, "…", cex = 1.6, col = crukpink)
+text(71, yl, "…", cex = 1.6, col = crukdark)
+for (i in seq_along(px))
+  text(px[i], yl + 5.5, lab[[i]], cex = 1.0, col = if (rej[i]) crukpink else crukdark)
+
+## gamma
+segments(g, 4, g, 34, lwd = 2.5, lty = 2, col = cruklight)
+text(g, 37, expression(bold(gamma)), cex = 1.5, col = cruklight)
+text((x0 + g) / 2, 3.2, "rejected", cex = 0.95, font = 2, col = crukpink)
+text((g + x1) / 2, 3.2, "not rejected", cex = 0.95, col = "grey35")
+```
 
 \vspace{-0.6em}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Choice}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Choice}: the threshold $\gamma$ depends on the rank $k$, and $k$ depends on $\gamma$: BH takes the \textbf{largest} $k$ that still satisfies the rule\par
-
-\vspace{0.2em}
-
 \begingroup\centering
-\textbf{\large BH turns the FDR level $\boldsymbol{q}$ into a rank-dependent threshold}\par\endgroup
+All $p$-values below $\gamma$ are \textbf{rejected}\par
+\vspace{0.1em}
+$\gamma$ is chosen so that the \textbf{estimated} FDR below $\gamma$ is at most $q$ (e.g.\ $q = 0.10$)\par
+\endgroup
+
+\vspace{-0.1em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ With $k$ the number of $p$-values below $\gamma$, and $f(\gamma)$ the probability that a \colorbox{red}{\color{black}TRUE} null $p$-value falls below $\gamma$:\par
+\vspace{0.15em}
+\begingroup\centering
+$\displaystyle \mathbb{E}(V) = f(\gamma)\,m_0 \le f(\gamma)\,n \;\; \Longrightarrow \;\; \mathrm{FDR} \approx \frac{f(\gamma)\,n}{k} \;\; \Longrightarrow \;\; \textcolor{crukdark}{\boldsymbol{f(\gamma) \le \frac{k\,q}{n}}}$\par
+\endgroup
+
+## Controlling the FDR: Benjamini--Hochberg (BH) {.t}
+
+\vspace{-0.01em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ $\gamma$ is the \textbf{threshold}, and $f(\gamma)$ is the \textbf{probability} that a \colorbox{red}{\color{black}TRUE} null $p$-value falls below $\gamma$\par
+
+\vspace{0.4em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ From the \textbf{distribution of the $p$-value}: under $H_0$ it is Uniform$(0,1)$, so the probability that it falls below $\gamma$ is $\gamma$, whatever $m_0$ is\par
+
+\vspace{0.3em}
+
+\begingroup\centering\Large
+Hence\quad $\textcolor{crukdark}{\boldsymbol{f(\gamma) = \gamma}}$\par
+\endgroup
+
+\vspace{0.5em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ Hence $\gamma$ must satisfy the following inequality:\par
+
+\vspace{0.4em}
+
+\begingroup\centering\Large
+$\textcolor{crukdark}{\boldsymbol{\gamma \le \dfrac{k\,q}{n}}}$\par
+\endgroup
+
+\vspace{0.3em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{BH} chooses the \textbf{largest} $\gamma$ that satisfies this inequality ($k$ is the number of $p$-values below $\gamma$)\par
 
 \begin{tikzpicture}[remember picture, overlay]
 \node[anchor=south west, inner sep=0, text width=341pt, align=left, font=\scriptsize, text=gray] at ([xshift=10.7pt,yshift=12.5pt]current page.south west) {Benjamini, Y. \& Hochberg, Y. \textit{Controlling the false discovery rate: a practical and powerful approach to multiple testing}. J.\ R.\ Stat.\ Soc.\ B \textbf{57}(1), 289--300 (1995).};
 \end{tikzpicture}
-
 
 ## Controlling the FDR: Benjamini--Hochberg (BH) {.t}
 
 \vspace{-0.01em}
 
 \begingroup
-The $p$-values from $n = 1000$ \textbf{independent} tests are \textbf{ordered} and compared with the \textbf{increasing} threshold $i\,q/n$, to control the \textbf{FDR} at $q = 0.10$\par
+The \textbf{ordered} $p$-values from $n = 1000$ \textbf{independent} tests against the threshold $i\,q/n$ ($q = 0.10$): BH rejects up to the \textbf{largest} $i$ with $p_{(i)} \le i\,q/n$\par
 \endgroup
 
 \vspace{-0.5em}
@@ -2511,8 +3050,9 @@ p_bh  <- c(runif(m0_bh), 2 * pnorm(-abs(rnorm(n_bh - m0_bh, mean = 3))))
 q_bh  <- 0.10
 
 ps <- sort(p_bh); ii <- seq_len(n_bh)
-k_bh <- max(which(ps <= ii * q_bh / n_bh))      # largest i with p(i) <= i alpha/n
-xmax <- 250
+k_bh <- max(which(ps <= ii * q_bh / n_bh))      # largest i with p(i) <= i q/n
+## stop the axis where the p-values leave the panel, so none is clipped
+xmax <- 10 * floor(max(which(ps <= 0.032)) / 10)
 
 par(mar = c(3.0, 4.4, 0.6, 0.8), mgp = c(2.3, 0.6, 0))
 plot(NULL, xlim = c(0, xmax), ylim = c(0, 0.032), bty = "n", las = 1,
@@ -2561,31 +3101,32 @@ $`r k_bh+1`$ \textbf{(=\,\textit{k+1})} & $`r sprintf('%.6f', ps[k_bh+1])`$ & $`
 \endgroup
 
 \begin{tikzpicture}[remember picture, overlay]
-\node[anchor=south, inner sep=0, font=\small\bfseries, text=crukdark] at ([yshift=12pt]current page.south) {The \textbf{adjusted} $p$-value $\boldsymbol{\tilde{p}_{(i)}}$: see the slide \textit{FDR-adjusted $p$-values: the $q$-value}};
+\node[anchor=south, inner sep=0, font=\small\bfseries, text=crukdark] at ([yshift=12pt]current page.south) {The \textbf{BH-adjusted} $p$-value $\boldsymbol{\tilde{p}_{(i)}}$: see the slide \textit{FDR-adjusted $p$-values}};
 \end{tikzpicture}
 
 ## Controlling the FDR: Benjamini--Hochberg (BH) {.t}
 
-\vspace{-0.01em}
+\vspace{-2pt}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Conservative}: the rule counts \textbf{every} hypothesis as a possible false discovery ($n\,\gamma$), but only the $m_0$ \colorbox{red}{\color{black}TRUE} nulls can produce one. The real level is therefore
-\vspace{-0.25em}
-$$\mathrm{FDR} \leq \frac{m_0}{n}\,q \leq q$$
-
-\vspace{-0.55em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ The factor $m_0/n$ is \textbf{power given away}: Storey's $\hat{\pi}_0$ tries to recover it\par
-
-\vspace{0.45em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Without independence}: the proof needs each \colorbox{red}{\color{black}TRUE} null $p$-value to \textbf{move together} with the whole vector of $p$-values --- a small $p$-value never makes the others \textbf{more likely to be large} (\textit{positive regression dependency on a subset}, PRDS). \textbf{Positive correlation} is \textbf{not always enough}. With \textbf{negative} dependence, FDR control is \textbf{not guaranteed}\par
-
-\vspace{0.45em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Solution}: \textbf{BY}, which divides the threshold by $\sum_{j=1}^{n} 1/j$ and controls the FDR under \textbf{any} dependence (here $152 \rightarrow 75$ discoveries)\par
+\noindent
+\begin{tikzpicture}[box/.style={draw=crukdark, line width=1pt, rounded corners=3pt, align=center, inner sep=7pt}]
+\node[box, fill=crukdark!6, text width=\dimexpr\linewidth-15pt\relax] (bh) at (0, 0)
+  {\textbf{BH} controls the FDR at level $q$ when the $p$-values are \textbf{independent},
+   or have a specific \textbf{positive dependence} among the \colorbox{red}{\color{black}TRUE} nulls (PRDS)};
+\node[box, text width=0.34\linewidth] (by) at (-3.1, -3.3)
+  {\large\textbf{\textcolor{crukdark}{BY}}\\[3pt] \textbf{no assumption} on the dependence\\[2pt]
+   {\footnotesize\color{gray} at the price of power}};
+\node[box, text width=0.34\linewidth] (st) at (3.1, -3.3)
+  {\large\textbf{\textcolor{crukdark}{Storey}}\\[3pt] \textbf{more powerful}\\[2pt]
+   {\footnotesize\color{gray} needs independence (or only local correlation, with many tests)}};
+\draw[->, line width=1.6pt, crukdark] (bh.south -| by.north) -- (by.north)
+  node[midway, left, font=\footnotesize, text=gray] {drop the assumption};
+\draw[->, line width=1.6pt, crukdark] (bh.south -| st.north) -- (st.north)
+  node[midway, right, font=\footnotesize, text=gray] {estimate $\pi_0 = m_0/n$};
+\end{tikzpicture}
 
 \begin{tikzpicture}[remember picture, overlay]
-\node[anchor=south west, inner sep=0, text width=341pt, align=left, font=\scriptsize, text=gray] at ([xshift=10.7pt,yshift=12.5pt]current page.south west) {Benjamini, Y. \& Yekutieli, D. \textit{The control of the false discovery rate in multiple testing under dependency}. Ann.\ Statist.\ \textbf{29}(4), 1165--1188 (2001).};
+\node[anchor=south west, inner sep=0, text width=341pt, align=left, font=\scriptsize, text=gray] at ([xshift=10.7pt,yshift=12.5pt]current page.south west) {Benjamini, Y. \& Yekutieli, D. \textit{The control of the false discovery rate in multiple testing under dependency}. Ann.\ Statist.\ \textbf{29}(4), 1165--1188 (2001).\\ Storey, J.\,D., Taylor, J.\,E. \& Siegmund, D. \textit{Strong control, conservative point estimation and simultaneous conservative consistency of false discovery rates}. J.\ R.\ Stat.\ Soc.\ B \textbf{66}(1), 187--205 (2004).};
 \end{tikzpicture}
 
 ## Controlling the FDR: Benjamini--Yekutieli (BY) {.t}
@@ -2601,7 +3142,7 @@ BH and BY are the \textbf{same} step-up rule --- order the $p$-values, take the 
 $$p_{(k)} \leq \frac{k\,q}{n\,c(n)} \qquad\qquad
 \begin{array}{ll}
 \textbf{BH:} & c(n) = 1\\[2pt]
-\textbf{BY:} & c(n) = \sum\limits_{j=1}^{n} \dfrac{1}{j} \approx \ln n + 0.577
+\textbf{BY:} & c(n) = \sum\limits_{j=1}^{n} \dfrac{1}{j} \approx \ln n + 0.577 \text{ (large } n\text{)}
 \end{array}$$
 
 \vspace{-1.2pt}
@@ -2623,11 +3164,7 @@ $$p_{(k)} \leq \frac{k\,q}{n\,c(n)} \qquad\qquad
 
 ## Controlling the FDR: Storey's procedure {.t}
 
-\vspace{-0.2em}
-
-\textbf{\textcolor{crukdark}{Recover the power BH loses through the factor $\boldsymbol{m_0/n}$}}
-
-\vspace{-0.3em}
+\vspace{-0.01em}
 
 \begingroup
 \settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ BH is \textbf{calibrated} for the worst case $m_0 = n$: every hypothesis is a \colorbox{red}{\color{black}TRUE} null. Storey instead takes into account the proportion of true nulls $\pi_0 = m_0/n$
@@ -2647,42 +3184,54 @@ $$p_{(k)} \leq \frac{k\,q}{n\,\hat{\pi}_0} \qquad \text{and reject the } k \text
 
 \vspace{0.45em}
 
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Assumptions}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Assumptions}: independence, or only \textbf{local} correlation (e.g.\ small groups of genes), plus a reliable $\hat{\pi}_0$ --- which needs \textbf{many} tests\par
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Assumptions}: }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Assumptions}: independence, or only \textbf{local} correlation, and \textbf{many} tests for a reliable $\hat{\pi}_0$\par
 \endgroup
 
 \begin{tikzpicture}[remember picture, overlay]
-\node[anchor=south, inner sep=0, font=\small\bfseries, text=crukdark] at ([yshift=12pt]current page.south) {How $\boldsymbol{\hat{\pi}_0}$ is estimated: see the slides \textit{Storey's estimate of the FDR -- step by step}};
+\node[anchor=south, inner sep=0, font=\small\bfseries, text=crukdark] at ([yshift=12pt]current page.south) {How $\boldsymbol{\hat{\pi}_0}$ is estimated: see the slides \textit{Storey's estimate of the FDR}};
 \end{tikzpicture}
 
 ## Controlling the FDR: which method? {.t}
 
-\vspace{1.0em}
+\vspace{-14pt}
 
-\begin{center}
-\small
-\renewcommand{\arraystretch}{1.5}
+\begingroup\small\noindent
+\renewcommand{\arraystretch}{1.25}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}l >{\raggedright\arraybackslash}p{4.15cm} >{\raggedright\arraybackslash}p{1.6cm} >{\raggedright\arraybackslash}p{3.95cm}@{}}
 \hline
 \textbf{Method} & \textbf{Assumptions} & \textbf{Power} & \textbf{Best used for} \\
 \hline
-\textbf{BH} & Independence or PRDS & Intermediate & Few true effects ($\pi_0 \approx 1$), or too few tests to estimate $\pi_0$ \\
+\textbf{BH} & Independence or PRDS & Intermediate & Positively correlated tests; few true effects ($\pi_0 \approx 1$); too few tests to estimate $\pi_0$ \\
 \textbf{BY} & Any dependence & Lowest & Unknown or negative dependence \\
 \textbf{Storey} & Independence or local correlation, plus a reliable $\hat{\pi}_0$ & Highest & Many tests, large fraction of true effects ($\pi_0 \ll 1$) \\
 \hline
-\end{tabular}
-\normalsize
-\end{center}
+\end{tabular}\par
+\endgroup
 
-\vspace{0.4em}
+\vspace{-0.9em}
 
 \begin{center}
 \textbf{All three order the $\boldsymbol{p}$-values and use a step-up threshold: they differ only\\ in the constant \emph{dividing} $\boldsymbol{k\,q/n}$: fixed (BH, BY) or \emph{estimated} (Storey)}
 \end{center}
 
-## Storey's estimate of the FDR: step by step {.t}
+\vspace{-1.5em}
 
-\vspace{0.15em}
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\setlength{\tabcolsep}{14pt}
+\begin{tabular}{@{}lccc@{}}
+\hline
+ & \textbf{BH} & \textbf{BY} & \textbf{Storey} \\
+\hline
+\textbf{Threshold} $\boldsymbol{\gamma \le}$ & $\dfrac{k\,q}{n}$ & $\dfrac{k\,q}{n\,c(n)}$ & $\dfrac{k\,q}{n\,\hat{\pi}_0}$ \\
+\hline
+\end{tabular}
+\end{center}
+
+## Storey's estimate of the FDR {.t}
+
+\vspace{-0.01em}
 
 \begingroup
 The same $n = 1000$ \textbf{independent} tests: empirical distribution of the $p$-values, with $\alpha = 0.05$ used as a \textbf{fixed cut-off} and $\lambda = 0.5$ above which $p$-values are taken as \colorbox{red}{\color{black}TRUE} nulls\par
@@ -2690,7 +3239,7 @@ The same $n = 1000$ \textbf{independent} tests: empirical distribution of the $p
 
 \vspace{-0.6em}
 
-```{r storey-hist, fig.width=6.4, fig.height=2.58, fig.align="center", out.width="92%"}
+```{r storey-hist, fig.width=6.4, fig.height=2.35, fig.align="center", out.width="92%"}
 crukdark  <- "#00007E"
 cruklight <- "#009CEE"
 crukpink  <- "#FF0087"
@@ -2715,14 +3264,16 @@ ymx <- max(h$counts)                      # = R, the first bar
 
 ## the significance threshold
 abline(v = t_st, col = crukpink, lwd = 2.6)
-text(t_st, ymx * 0.97, expression(alpha == 0.05),
-     col = crukpink, pos = 4, cex = 1.15, font = 2)
+## the alpha label and the pi0-hat label share one baseline (y_top)
+y_top <- ymx * 0.93
+text(t_st + 0.012, y_top, expression(alpha == 0.05),
+     col = crukpink, cex = 1.15, font = 2, adj = c(0, 0), xpd = NA)
 
-## R = observed rejections: the first bar, all p-values <= alpha
+## k = observed rejections (as on the BH slides): the first bar, all p-values <= alpha
 R_st <- sum(p_st <= t_st)
 arrows(0.085, ymx * 0.74, 0.025, ymx * 0.74, length = 0.07, lwd = 2,
        col = crukdark)
-text(0.083, ymx * 0.74, bquote(italic(R) == .(R_st)),
+text(0.083, ymx * 0.74, bquote(italic(k) == .(R_st)),
      col = crukdark, pos = 4, cex = 1.15)
 text(0.083, ymx * 0.64, "observed rejections",
      col = crukpink, pos = 4, cex = 1.15, font = 3)
@@ -2736,11 +3287,11 @@ hbrace <- function(x0, x1, y, h, ...) {
           shape = c(0, 1, 1, 0, 1, 1, 0), open = TRUE, ...)
 }
 hbrace(0.5, 1, ymx * 0.28, ymx * 0.065, border = crukdark, lwd = 2)
-text(0.75, ymx * 0.49, bquote(.(W_st) ~ italic(p) * "-values" > lambda ~ "=" ~ 0.5),
+text(0.75, ymx * 0.525, bquote(.(W_st) ~ italic(p) * "-values" > lambda ~ "=" ~ 0.5),
      col = crukdark, cex = 1.15)
 
 ## second line: "(mostly TRUE nulls)", TRUE in a red box as on earlier slides
-lab_cex <- 1.05; y2 <- ymx * 0.395
+lab_cex <- 1.05; y2 <- ymx * 0.385
 pieces  <- c("(mostly", " TRUE ", " nulls)")
 wd <- strwidth(pieces, cex = lab_cex)
 x0 <- 0.75 - sum(wd) / 2
@@ -2752,51 +3303,48 @@ text(xs, y2, pieces, adj = c(0, 0.5), cex = lab_cex,
      col = c(crukdark, "black", crukdark))
 
 ## arrow up from the count to pi0-hat, the proportion of TRUE nulls
-pi0_st <- W_st / (n_st * 0.5)
-arrows(0.83, ymx * 0.565, 0.83, ymx * 0.775, length = 0.09, lwd = 2,
+pi0_st <- min(1, W_st / (n_st * 0.5))   # capped at 1
+arrows(0.83, ymx * 0.60, 0.83, ymx * 0.775, length = 0.09, lwd = 2,
        col = crukdark)
-text(0.97, ymx * 0.97,
+text(0.97, y_top,
      bquote(hat("\u03C0")[0] == .(W_st) / (.(n_st) %*% (1 - lambda)) ~ "=" ~ .(sprintf("%.3f", pi0_st))),
-     col = crukdark, cex = 1.15, adj = c(1, 0.5))
-text(0.97, ymx * 0.87, "estimated proportion of true null hypotheses",
+     col = crukdark, cex = 1.15, adj = c(1, 0), xpd = NA)
+text(0.97, ymx * 0.85, "estimated proportion of true null hypotheses",
      col = crukpink, cex = 1.15, font = 3, adj = c(1, 0.5))
 ```
 
-\vspace{-1.1em}
+\vspace{-1.4em}
 
-$$\widehat{\mathrm{FDR}}(\alpha) = \frac{\hat{\pi}_0 \times n \times \alpha}{R} = \frac{`r sprintf("%.3f", pi0_st)` \times `r n_st` \times `r t_st`}{`r R_st`} = \textcolor{crukdark}{\mathbf{`r sprintf("%.3f", pi0_st * n_st * t_st / max(R_st, 1))`}}$$
+\begingroup\centering\footnotesize\color{gray}
+$\hat{\pi}_0$ is capped at 1: $\hat{\pi}_0 = \min\{1,\; W/(n(1-\lambda))\}$\par
+\endgroup
 
 \vspace{-0.4em}
-\begingroup\scriptsize\textcolor{gray}{Storey, J.\,D. \textit{A direct approach to false discovery rates}. J.\ R.\ Stat.\ Soc.\ B \textbf{64}(3), 479--498 (2002).}\par\endgroup
 
-
-## Storey's estimate of the FDR: step by step {.t}
-
-\vspace{0.15em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Conservative}: $\hat{\pi}_0$ treats every $p$-value above $\lambda$ as coming from a \colorbox{red}{\color{black}TRUE} null. Some real effects also land there, so $\hat{\pi}_0$ is biased \textbf{upwards} and $\widehat{\mathrm{FDR}}$ errs on the \textbf{safe} side (too high, never too low on average)\par
-
-\vspace{0.3em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ The bias \textbf{shrinks} when power is high or $\lambda$ is large; but a larger $\lambda$ leaves fewer $p$-values to count, so the estimate is \textbf{noisier} ($\lambda = 0.5$ is the usual compromise)\par
-
-\vspace{0.6em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Without independence}: each null $p$-value is still Uniform$(0,1)$, but correlated $p$-values move \textbf{together}: in a single study their histogram can be far from uniform, so $\hat{\pi}_0$ and $\widehat{\mathrm{FDR}}$ can be far from the truth, \textbf{too high or too low}\par
-
-\vspace{0.6em}
-
-\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Solution}: \textbf{resample} so that the correlation between tests is kept, e.g.\ by permuting the sample labels (Storey's permutation method)\par
+$$\widehat{\mathrm{FDR}}(\alpha) = \frac{\hat{\pi}_0 \times n \times \alpha}{k} = \frac{`r sprintf("%.3f", pi0_st)` \times `r n_st` \times `r t_st`}{`r R_st`} = \textcolor{crukdark}{\mathbf{`r sprintf("%.3f", pi0_st * n_st * t_st / max(R_st, 1))`}}$$
 
 \begin{tikzpicture}[remember picture, overlay]
-\node[anchor=south west, inner sep=0, text width=341pt, align=left, font=\scriptsize, text=gray] at ([xshift=10.7pt,yshift=12.5pt]current page.south west) {Storey, J.\,D. \& Tibshirani, R. \textit{Estimating the positive false discovery rate under dependence, with applications to DNA microarrays}. Technical Report No.\ 2001-28, Department of Statistics, Stanford University (2001).};
+\node[anchor=south west, inner sep=0, text width=341pt, align=left, font=\scriptsize, text=gray] at ([xshift=10.7pt,yshift=12.5pt]current page.south west) {Storey, J.\,D. \textit{A direct approach to false discovery rates}. J.\ R.\ Stat.\ Soc.\ B \textbf{64}(3), 479--498 (2002).};
 \end{tikzpicture}
 
 
+## Storey's estimate of the FDR {.t}
+
+\vspace{-0.01em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{Storey errs on the safe side}: it counts \textbf{every} $p$-value above $0.5$ as a \colorbox{red}{\color{black}TRUE} null, but a few real effects land there too. So it \textbf{overestimates} how many nulls are \colorbox{red}{\color{black}TRUE}, and its estimated FDR is slightly \textbf{too high}, never too low\par
+
+\vspace{0.8em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{Local correlation}: genes are correlated only within \textbf{small clusters} of a few co-regulated genes, positive \textbf{or} negative, with the clusters unrelated to each other\par
+
+\vspace{0.6em}
+
+\settowidth{\hangindent}{$\textcolor{crukdark}{\bullet}$ }\hangafter=1 $\textcolor{crukdark}{\bullet}$ \textbf{Global correlation must be avoided}: Storey counts the $p$-values of \textbf{this one study}. Small clusters each go their own way and \textbf{average out}, so the count is reliable. But if \textbf{all} the genes move together they are \textbf{one} big cluster: the whole picture shifts from study to study, and the count can be badly wrong --- even when every correlation is \textbf{positive}\par
 
 ## FDR-adjusted $p$-values: the $q$-value {.t}
 
-\vspace{-1pt}
+\vspace{-0.01em}
 
 \hangindent=9pt\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Definition}: the \textbf{smallest FDR} at which a test would still be called significant. Note: $q_{(i)}$ is the \textbf{$\boldsymbol{q}$-value of one test}, not the FDR \textbf{level} $q$
 
@@ -2815,21 +3363,17 @@ $$\widehat{\mathrm{FDR}}(\alpha) = \frac{\hat{\pi}_0 \times n \times \alpha}{R} 
 \hline
 \textbf{BH} & \textbf{BY} & \textbf{Storey} \\
 \hline
-$\displaystyle \min_{j \,\geq\, i} \min\!\left(1, \frac{n}{j}\,p_{(j)}\right)$ &
-$\displaystyle \min_{j \,\geq\, i} \min\!\left(1, c(n)\,\frac{n}{j}\,p_{(j)}\right)$ &
-$\displaystyle \min_{j \,\geq\, i} \min\!\left(1, \hat{\pi}_0\,\frac{n}{j}\,p_{(j)}\right)$ \\
+$\displaystyle \frac{n}{j}\,p_{(j)}$ &
+$\displaystyle c(n)\,\frac{n}{j}\,p_{(j)}$ &
+$\displaystyle \hat{\pi}_0\,\frac{n}{j}\,p_{(j)}$ \\
 \hline
 \end{tabular}\par
 \normalsize
 \vspace{0.5em}
-\footnotesize Same three steps: scale $p_{(j)}$ by $n/j$, take the \textbf{running minimum from the right}, cap at $1$\par
+\footnotesize Two constraints: a $q$-value can never be above $\boldsymbol{1}$, and a larger $p$-value must never give a smaller $q$-value. Both are met by taking $q_{(i)}$ = the \textbf{smallest} of these values from rank $i$ \textbf{onwards}\par
 \vspace{0.15em}
 Only the constant in front differs: $1$ (BH), $c(n) = \sum_{j=1}^{n} 1/j$ (BY), $\hat{\pi}_0$ (Storey)\par
 \endgroup
-
-\vspace{0.6em}
-
-\hangindent=9pt\hangafter=1 $\textcolor{crukdark}{\bullet}$ \colorbox{cruklight}{\color{white}Interpretation}: reject every test with $q_{(i)} \leq 0.05$ and \textbf{at most} $\approx 5\%$ of those discoveries are expected to be false
 
 
 
@@ -2842,12 +3386,12 @@ Only the constant in front differs: $1$ (BH), $c(n) = \sum_{j=1}^{n} 1/j$ (BY), 
 \vspace{-0.01em}
 
 \begingroup
-The line from the \textbf{origin} through a point has slope $p_{(i)}/i$: it is the BH threshold line at the level $q = n\,p_{(i)}/i$. The \textbf{same} point gives \textbf{three} adjusted values, one per constant\par
+The line from the \textbf{origin} through a point has slope $\boldsymbol{p_{(i)}/i}$. That \textbf{single slope} gives all \textbf{three} $q$-values: multiply it by each method's factor\par
 \endgroup
 
 \vspace{-0.9em}
 
-```{r padj-plot, fig.width=6.8, fig.height=1.72, fig.align="center", out.width="86%"}
+```{r padj-plot, fig.width=6.8, fig.height=2.0, fig.align="center", out.width="86%"}
 crukdark  <- "#00007E"
 crukpink  <- "#FF0087"
 
@@ -2858,56 +3402,45 @@ p_pa  <- c(runif(800), 2 * pnorm(-abs(rnorm(200, mean = 3))))
 q_pa  <- 0.10
 ps_pa <- sort(p_pa)
 k_pa  <- max(which(ps_pa <= seq_len(n_pa) * q_pa / n_pa))
-xmax_pa <- 250
+## stop the axis where the p-values leave the panel, so none is clipped
+xmax_pa <- 10 * floor(max(which(ps_pa <= 0.032)) / 10)
 
 par(mar = c(2.9, 4.2, 0.5, 0.8), mgp = c(2.2, 0.55, 0))
 plot(NULL, xlim = c(0, xmax_pa), ylim = c(0, 0.032), bty = "n", las = 1,
-     xlab = "", ylab = "", cex.axis = 0.9)
+     xlab = "", ylab = "", cex.axis = 0.9, xaxt = "n")
+## the default ticks stop at 150: label the end of the axis too
+axis(1, at = c(seq(0, xmax_pa - 30, by = 50), xmax_pa), cex.axis = 0.9)
 mtext(expression("rank " * italic(i) * " of the ordered " * italic(p) * "-values"),
       side = 1, line = 1.8, cex = 1.0)
 mtext(expression(italic(p) * "-value"), side = 2, line = 2.9, cex = 1.0)
 
-abline(0, q_pa / n_pa, col = crukpink, lwd = 2.4)
-text(xmax_pa, xmax_pa * q_pa / n_pa + 0.0028,
-     expression(italic(i) * italic(q) / italic(n)), col = crukpink, cex = 1.05,
-     font = 2, adj = c(1, 0.5), xpd = NA)
-
 sel <- 1:xmax_pa
-points(sel, ps_pa[sel], pch = 19, cex = 0.45,
-       col = ifelse(sel <= k_pa, crukdark, "grey65"))
+points(sel, ps_pa[sel], pch = 19, cex = 0.45, col = crukdark)
 
-## the line from the origin through the point of rank 152
+## the line from the origin through the point of rank 152: its slope is p(152)/152
 i_ex <- k_pa
-segments(0, 0, i_ex, ps_pa[i_ex], col = crukdark, lwd = 1.8, lty = 2)
-points(i_ex, ps_pa[i_ex], pch = 21, bg = "white", col = crukdark, lwd = 2, cex = 1.2)
-text(i_ex + 7, ps_pa[i_ex] - 0.0028,
-     bquote(italic(p)[(152)] == .(sprintf("%.5f", ps_pa[i_ex]))),
-     col = crukdark, cex = 1.0, font = 2, adj = c(0, 0.5), xpd = NA)
-
-## same arrow and labels as the BH slide
-arrows(124, 0.0215, i_ex - 4, ps_pa[i_ex] + 0.0013, length = 0.07,
+segments(0, 0, i_ex, ps_pa[i_ex], col = crukpink, lwd = 2.4)
+points(i_ex, ps_pa[i_ex], pch = 21, bg = "white", col = crukdark, lwd = 2, cex = 1.3)
+text(40, 0.0240, bquote(italic(p)[(152)] == .(sprintf("%.5f", ps_pa[i_ex]))),
+     col = crukdark, cex = 1.05, font = 2, adj = c(0, 0.5), xpd = NA)
+text(40, 0.0180, expression("slope of the line" == italic(p)[(152)] / 152),
+     col = crukpink, cex = 1.05, font = 2, adj = c(0, 0.5), xpd = NA)
+arrows(96, 0.0240, i_ex - 4, ps_pa[i_ex] + 0.0012, length = 0.07,
        lwd = 1.8, col = crukdark)
-text(60, 0.0310, bquote(italic(k) == .(i_ex)),
-     col = crukdark, cex = 1.0, adj = c(0, 0.5), xpd = NA)
-text(60, 0.0240, bquote("reject ranks 1 to" ~ italic(k)),
-     col = crukpink, cex = 1.0, font = 3, adj = c(0, 0.5), xpd = NA)
 ```
 
 \vspace{-1.0em}
 
 \begingroup\centering\footnotesize
-$q_{\mathrm{BH}} = \dfrac{n \times p_{(152)}}{152} = \dfrac{1000 \times 0.01488}{152} = 0.098$\par
-\vspace{0.1em}
-\begingroup\scriptsize here the running minimum is reached at $j = 152$, and nothing is capped at $1$\par\endgroup
-\footnotesize
-\vspace{0.2em}
-\renewcommand{\arraystretch}{1.15}
+slope: \quad $\dfrac{p_{(152)}}{152} = \dfrac{0.01488}{152} = \boldsymbol{0.00009792}$\par
+\vspace{0.4em}
+\renewcommand{\arraystretch}{1.0}
 \setlength{\tabcolsep}{9pt}
 \begin{tabular}{@{}ccc@{}}
 \hline
 \textbf{BH} & \textbf{BY} & \textbf{Storey} \\
-$1 \times 0.098$ & $7.49 \times 0.098$ & $0.796 \times 0.098$ \\
-$\boldsymbol{0.098}$ & $\boldsymbol{0.733}$ & $\boldsymbol{0.078}$ \\
+factor $n = 1000$ & factor $n\,c(n) = 7485$ & factor $n\,\hat{\pi}_0 = 796$ \\
+$\boldsymbol{q = 0.098}$ & $\boldsymbol{q = 0.733}$ & $\boldsymbol{q = 0.078}$ \\
 \hline
 \end{tabular}\par
 \endgroup
